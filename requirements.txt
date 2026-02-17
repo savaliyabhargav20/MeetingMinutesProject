@@ -1,0 +1,8 @@
+streamlit
+openai-whisper
+langchain
+langchain-openai
+moviepy
+python-docx
+python-dotenv
+setuptools-rust
