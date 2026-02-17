@@ -2,6 +2,7 @@ streamlit
 openai-whisper
 langchain
 langchain-openai
+langchain-core
 moviepy
 python-docx
 python-dotenv
