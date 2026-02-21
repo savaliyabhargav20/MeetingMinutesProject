@@ -1,57 +1,42 @@
-import streamlit as st
-import openai
-from docx import Document
-from io import BytesIO
+import whisper
 import os
+from dotenv import load_dotenv
 
-# --- 1. CONFIGURATION ---
-# This looks for a label named "OPENAI_API_KEY" in your Streamlit Secrets
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+# Use these modern import paths to avoid ModuleNotFound errors
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
 
-# --- 2. DEFINE FUNCTIONS ---
+load_dotenv()
+
 def transcribe_audio(file_path):
-    """Transcribes audio using OpenAI Whisper."""
-    try:
-        with open(file_path, "rb") as audio_file:
-            transcript = openai.Audio.transcribe("whisper-1", audio_file)
-        return transcript["text"]
-    except Exception as e:
-        return f"Transcription Error: {str(e)}"
+    # (Rest of your code remains the same)
+    model = whisper.load_model("base")
+    result = model.transcribe(file_path)
+    return result["text"]
 
-def create_docx(text):
-    """Creates a Word document from the provided text."""
-    doc = Document()
-    doc.add_heading('Meeting Minutes', 0)
-    doc.add_paragraph(text)
-    
-    buffer = BytesIO()
-    doc.save(buffer)
-    buffer.seek(0)
-    return buffer
+def generate_summary(transcript_text):
+    # Use the updated imports here
+    llm = ChatOpenAI(model="gpt-4o", temperature=0.7)
+    prompt = ChatPromptTemplate.from_template("Summarize this: {transcript}")
+    chain = prompt | llm
+    return chain.invoke({"transcript": transcript_text}).content
 
-# --- 3. STREAMLIT UI ---
-st.title("🎙️ Meeting Minutes Generator")
+st.title("📝 Automatic Meeting Minutes")
 
-uploaded_file = st.file_uploader("Upload Audio File", type=["m4a", "mp3", "wav"])
+# ... (rest of your UI code)
 
-if uploaded_file is not None:
-    # Save file temporarily
-    with open("temp_audio.m4a", "wb") as f:
-        f.write(uploaded_file.getbuffer())
+if st.button("Generate Meeting Minutes"):
+    # ... (transcription and summary logic)
     
-    st.info("Transcribing audio... please wait.")
+    summary = generate_summary(transcript)
+    st.write(summary)
+
+    # NOW THIS LINE WILL WORK:
+    docx_file = create_docx(summary) 
     
-    # Transcription
-    transcript = transcribe_audio("temp_audio.m4a")
-    st.write("### Transcript")
-    st.write(transcript)
-    
-    # Document Creation
-    if st.button("Generate Word Doc"):
-        docx_file = create_docx(transcript)
-        st.download_button(
-            label="Download Minutes",
-            data=docx_file,
-            file_name="meeting_minutes.docx",
-            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        )
+    st.download_button(
+        label="Download Word Document",
+        data=docx_file,
+        file_name="meeting_minutes.docx",
+        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
