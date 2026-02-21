@@ -50,6 +50,7 @@ if uploaded_file:
         
         os.remove("temp_audio.m4a")
 
+openai.api_key = st.secrets["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"]
 def transcribe_audio(file_path):
     try:
         # If using OpenAI API
@@ -76,4 +77,5 @@ if uploaded_file is not None:
     
     st.write("### Transcript:")
     st.write(text)
+
 
