@@ -50,4 +50,30 @@ if uploaded_file:
         
         os.remove("temp_audio.m4a")
 
+def transcribe_audio(file_path):
+    try:
+        # If using OpenAI API
+        with open(file_path, "rb") as audio_file:
+            transcript = openai.Audio.transcribe("whisper-1", audio_file)
+        return transcript["text"]
+    except Exception as e:
+        return f"Error during transcription: {str(e)}"
+
+# --- 2. YOUR APP LOGIC ---
+st.title("Meeting Minutes Generator")
+
+uploaded_file = st.file_uploader("Upload meeting audio", type=["m4a", "mp3", "wav"])
+
+if uploaded_file is not None:
+    # Save the uploaded file temporarily
+    with open("temp_audio.m4a", "wb") as f:
+        f.write(uploaded_file.getbuffer())
+
+    st.success("Audio uploaded! Starting transcription...")
+
+    # --- THIS IS LINE 45 WHERE THE ERROR WAS ---
+    text = transcribe_audio("temp_audio.m4a")
+    
+    st.write("### Transcript:")
+    st.write(text)
 
