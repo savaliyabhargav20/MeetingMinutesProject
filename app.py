@@ -20,15 +20,15 @@ st.title("Meeting Minutes Project")
 summary = "This is a sample summary of the meeting." 
 
 # 2. Now the script knows what 'create_docx' is
-if st.button("Generate Word Document"):
-    docx_file = create_docx(summary)
+#if st.button("Generate Word Document"):
+    #docx_file = create_docx(summary)
     
-    st.download_button(
-        label="Download Report",
-        data=docx_file,
-        file_name="meeting_summary.docx",
-        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    )
+  #  st.download_button(
+   #     label="Download Report",
+    #    data=docx_file,
+     #   file_name="meeting_summary.docx",
+      #  mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    #)
 
 st.set_page_config(page_title="AI Meeting Minutes", page_icon="📝")
 st.title("📝 Automatic Meeting Minutes")
@@ -77,5 +77,6 @@ if uploaded_file is not None:
     
     st.write("### Transcript:")
     st.write(text)
+
 
 
