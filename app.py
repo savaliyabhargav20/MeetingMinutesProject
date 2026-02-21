@@ -1,44 +1,38 @@
-import whisper
-import os
-from dotenv import load_dotenv
+import streamlit as st
+import openai
+from utils import transcribe_audio, generate_minutes
 
-# Use these modern import paths to avoid ModuleNotFound errors
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
+# --- CONFIGURATION ---
+st.set_page_config(page_title="AI Meeting Minutes", page_icon="📝")
 
-load_dotenv()
-openai.api_key = st.secrets["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"]
-def transcribe_audio(file_path):
-def transcribe_audio(file_path):
-    # (Rest of your code remains the same)
-    model = whisper.load_model("base")
-    result = model.transcribe(file_path)
-    return result["text"]
+# Accessing the secret correctly by its KEY NAME, not the value
+try:
+    openai.api_key = st.secrets["OPENAI_API_KEY"]
+except KeyError:
+    st.error("Missing secret: 'OPENAI_API_KEY' not found in Streamlit secrets.")
+    st.stop()
 
-def generate_summary(transcript_text):
-    # Use the updated imports here
-    llm = ChatOpenAI(model="gpt-4o", temperature=0.7)
-    prompt = ChatPromptTemplate.from_template("Summarize this: {transcript}")
-    chain = prompt | llm
-    return chain.invoke({"transcript": transcript_text}).content
+# --- UI ---
+st.title("📝 AI Meeting Minutes Generator")
+st.write("Upload your meeting recording and let AI do the notes.")
 
-st.title("📝 Automatic Meeting Minutes")
+uploaded_file = st.file_uploader("Upload Audio (mp3, wav, m4a)", type=["mp3", "wav", "m4a"])
 
-# ... (rest of your UI code)
-
-if st.button("Generate Meeting Minutes"):
-    # ... (transcription and summary logic)
-    
-    summary = generate_summary(transcript)
-    st.write(summary)
-
-    # NOW THIS LINE WILL WORK:
-    docx_file = create_docx(summary) 
-    
-    st.download_button(
-        label="Download Word Document",
-        data=docx_file,
-        file_name="meeting_minutes.docx",
-        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    )
-
+if uploaded_file is not None:
+    if st.button("Generate Minutes"):
+        with st.spinner("Processing... this may take a minute."):
+            
+            # Step 1: Transcribe
+            text_raw = transcribe_audio(uploaded_file)
+            
+            # Step 2: Generate Minutes
+            if "Error" not in text_raw:
+                minutes = generate_minutes(text_raw)
+                
+                st.subheader("Final Minutes")
+                st.markdown(minutes)
+                
+                # Download Option
+                st.download_button("Download Minutes", minutes, file_name="minutes.txt")
+            else:
+                st.error(text_raw)
