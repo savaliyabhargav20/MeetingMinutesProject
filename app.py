@@ -7,7 +7,8 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 
 load_dotenv()
-
+openai.api_key = st.secrets["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"]
+def transcribe_audio(file_path):
 def transcribe_audio(file_path):
     # (Rest of your code remains the same)
     model = whisper.load_model("base")
@@ -40,3 +41,4 @@ if st.button("Generate Meeting Minutes"):
         file_name="meeting_minutes.docx",
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
+
