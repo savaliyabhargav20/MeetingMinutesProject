@@ -1,41 +1,50 @@
 import whisper
 import os
+import io
+from docx import Document
 from dotenv import load_dotenv
-
-# UPDATED IMPORTS FOR LANGCHAIN 1.x
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 
 load_dotenv()
 
 def transcribe_audio(file_path):
-    """Converts audio to raw text using Whisper."""
-    model = whisper.load_model("base")
-    result = model.transcribe(file_path)
-    return result["text"]
+    """Converts audio to text using OpenAI Whisper."""
+    try:
+        # 'base' is good for speed/accuracy balance
+        model = whisper.load_model("base")
+        result = model.transcribe(file_path)
+        return result["text"]
+    except Exception as e:
+        raise Exception(f"Transcription failed: {str(e)}")
 
 def generate_summary(transcript_text):
-    """Summarizes text using the updated LangChain 1.x logic."""
+    """Uses a professional prompt to summarize meeting notes."""
     try:
-        # Initialize the LLM (Requires OPENAI_API_KEY in your .env)
-        llm = ChatOpenAI(model="gpt-4o", temperature=0.7)
-
-        # Updated Template Logic
-        prompt = ChatPromptTemplate.from_template("""
-        You are a professional secretary. Summarize this meeting transcript:
+        llm = ChatOpenAI(model="gpt-4o", temperature=0.5)
         
-        1. **Executive Summary**
-        2. **Key Decisions**
-        3. **Action Items**
-
+        prompt = ChatPromptTemplate.from_template("""
+        You are a professional secretary. Summarize the following meeting transcript into:
+        1. **Executive Summary** (brief overview)
+        2. **Key Decisions** (bullet points)
+        3. **Action Items** (Table format: Task | Owner)
+        
         Transcript:
         {transcript}
         """)
-
-        # Modern LangChain "Chain" syntax
+        
         chain = prompt | llm
         response = chain.invoke({"transcript": transcript_text})
-
         return response.content
     except Exception as e:
-        return f"Error: {str(e)}"
+        raise Exception(f"Summarization failed: {str(e)}")
+
+def create_docx(summary_text):
+    """Creates a professional Word document from the summary."""
+    doc = Document()
+    doc.add_heading('Meeting Minutes', 0)
+    doc.add_paragraph(summary_text)
+    
+    bio = io.BytesIO()
+    doc.save(bio)
+    return bio.getvalue()
