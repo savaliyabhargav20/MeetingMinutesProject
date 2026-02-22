@@ -7,5 +7,3 @@ moviepy
 python-docx
 python-dotenv
 setuptools-rust
-ffmpeg
-openai==0.28.1
