@@ -2,8 +2,8 @@ import streamlit as st
 import os
 from utils import transcribe_audio, generate_summary, create_docx
 
-st.set_page_config(page_title="AI Minutes Pro", page_icon="📝")
-st.title("📝 Automatic Meeting Minutes")
+st.set_page_config(page_title="AI Minutes Pro",)
+st.title("Automatic Meeting Minutes")
 
 uploaded_file = st.file_uploader("Upload Zoom Recording (m4a, mp3, wav)", type=["m4a", "mp3", "wav"])
 
@@ -43,3 +43,4 @@ if uploaded_file:
         finally:
             if os.path.exists(temp_name):
                 os.remove(temp_name)
+
