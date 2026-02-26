@@ -18,10 +18,10 @@ if uploaded_file:
         
         try:
             with st.status("Analyzing Meeting...", expanded=True) as status:
-                st.write("👂 Transcribing audio (Whisper)...")
+                st.write(" Transcribing audio (Whisper)...")
                 transcript = transcribe_audio(temp_name)
                 
-                st.write("🤖 Summarizing with GPT-4o...")
+                st.write(" Summarizing with GPT-4o...")
                 summary = generate_summary(transcript)
                 
                 status.update(label="Analysis Complete!", state="complete", expanded=False)
@@ -32,7 +32,7 @@ if uploaded_file:
             # Export Section
             docx_data = create_docx(summary)
             st.download_button(
-                label="📥 Download as Word Doc",
+                label=" Download as Word Doc",
                 data=docx_data,
                 file_name="Meeting_Minutes.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -43,4 +43,5 @@ if uploaded_file:
         finally:
             if os.path.exists(temp_name):
                 os.remove(temp_name)
+
 
