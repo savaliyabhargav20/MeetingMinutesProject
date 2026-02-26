@@ -8,7 +8,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 load_dotenv()
 
-OPENAI_API_KEY = ["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"]
+OPENAI_API_KEY = ["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"]
 def transcribe_audio(file_path):
     """Converts audio to text using OpenAI Whisper."""
     try:
@@ -49,5 +49,6 @@ def create_docx(summary_text):
     bio = io.BytesIO()
     doc.save(bio)
     return bio.getvalue()
+
 
 
