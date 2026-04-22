@@ -3,7 +3,7 @@ import os
 # Make sure 'create_docx' is added to this list!
 from utils import transcribe_audio, generate_summary, create_docx 
 
-st.title("📝 Automatic Meeting Minutes")
+st.title(" Automatic Meeting Minutes")
 
 # ... (rest of your UI code)
 
