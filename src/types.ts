@@ -33,3 +33,16 @@ export interface SampleMeeting {
   description: string;
   transcript: string;
 }
+
+export interface ConnectedUser {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface RealtimeSyncNotice {
+  message: string;
+  senderName: string;
+  timestamp: number;
+}
+

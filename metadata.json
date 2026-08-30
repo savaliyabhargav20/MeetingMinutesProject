@@ -1,6 +1,6 @@
 {
   "name": "AI Minutes Pro",
-  "description": "Automatic meeting minutes generator with AI audio transcription, structured summarization, action items extraction, and Word Doc (.docx) export.",
+  "description": "Automatic meeting minutes generator with real-time WebSocket multi-client sync, PDF & Word Doc (.docx) export, AI audio transcription, structured summarization, and action items extraction.",
   "requestFramePermissions": ["microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

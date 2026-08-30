@@ -1,44 +1,61 @@
 import React, { useState } from 'react';
-import { FileText, CheckCircle2, ListChecks, MessageSquare, ArrowRight, Copy, Check, Edit2 } from 'lucide-react';
+import { FileText, CheckCircle2, MessageSquare, ArrowRight, Copy, Check, Edit2, FileDown } from 'lucide-react';
 import { MeetingMinutes } from '../types';
+import { exportMeetingMinutesToPdf } from '../utils/pdfExport';
 
 interface MinutesViewerProps {
   minutes: MeetingMinutes;
   onUpdateMinutes?: (updated: MeetingMinutes) => void;
+  onOpenExport?: () => void;
 }
 
 export const MinutesViewer: React.FC<MinutesViewerProps> = ({
   minutes,
-  onUpdateMinutes
+  onUpdateMinutes,
+  onOpenExport
 }) => {
   const [copied, setCopied] = useState(false);
   const [isEditingSummary, setIsEditingSummary] = useState(false);
   const [editableSummary, setEditableSummary] = useState(minutes.executiveSummary);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   const handleCopy = () => {
     const text = `
-# ${minutes.title}
-Date: ${minutes.date}
+# ${minutes.title || 'Meeting Minutes'}
+Date: ${minutes.date || new Date().toLocaleDateString()}
+${minutes.attendees ? `Attendees: ${minutes.attendees}\n` : ''}
 
 ## Executive Summary
 ${minutes.executiveSummary}
 
 ## Key Decisions
-${minutes.keyDecisions.map(d => `- ${d}`).join('\n')}
+${(minutes.keyDecisions || []).map(d => `- ${d}`).join('\n')}
 
 ## Discussion Details
-${minutes.discussionTopics.map(t => `### ${t.topic}\n${t.summary}`).join('\n\n')}
+${(minutes.discussionTopics || []).map(t => `### ${t.topic}\n${t.summary}`).join('\n\n')}
 
 ## Action Items
-${minutes.actionItems.map(a => `- [${a.status}] ${a.task} (Owner: ${a.owner}, Due: ${a.dueDate}, Priority: ${a.priority})`).join('\n')}
+${(minutes.actionItems || []).map(a => `- [${a.status}] ${a.task} (Owner: ${a.owner}, Due: ${a.dueDate}, Priority: ${a.priority})`).join('\n')}
 
 ## Next Steps
-${minutes.nextSteps.map(s => `- ${s}`).join('\n')}
+${(minutes.nextSteps || []).map(s => `- ${s}`).join('\n')}
     `.trim();
 
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownloadPdf = () => {
+    try {
+      setDownloadingPdf(true);
+      exportMeetingMinutesToPdf(minutes);
+    } catch (err: any) {
+      console.error('PDF export failed:', err);
+      alert('Error exporting PDF: ' + err.message);
+    } finally {
+      setTimeout(() => setDownloadingPdf(false), 600);
+    }
   };
 
   const handleSaveSummary = () => {
@@ -57,11 +74,16 @@ ${minutes.nextSteps.map(s => `- ${s}`).join('\n')}
       <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4 mb-4">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">
-              Official Meeting Minutes
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">
+                Official Meeting Minutes
+              </span>
+              <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                PDF Ready
+              </span>
+            </div>
             <h2 className="text-xl font-bold text-slate-900 mt-2">
-              {minutes.title}
+              {minutes.title || 'Executive Meeting'}
             </h2>
             <p className="text-xs text-slate-500 mt-1">
               Date: <span className="font-medium text-slate-700">{minutes.date}</span>
@@ -71,15 +93,41 @@ ${minutes.nextSteps.map(s => `- ${s}`).join('\n')}
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={handleCopy}
-            id="btn-copy-minutes-summary"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-medium text-slate-700 transition-colors shrink-0"
-          >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
-            <span>{copied ? 'Copied Full Minutes' : 'Copy All Text'}</span>
-          </button>
+          <div className="flex items-center flex-wrap gap-2 shrink-0">
+            {/* Direct 1-Click PDF Download Button */}
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={downloadingPdf}
+              id="btn-quick-download-pdf"
+              title="Download clean formatted PDF document"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-colors"
+            >
+              <FileDown className="w-3.5 h-3.5" />
+              <span>{downloadingPdf ? 'Generating PDF...' : 'Download PDF'}</span>
+            </button>
+
+            {onOpenExport && (
+              <button
+                type="button"
+                onClick={onOpenExport}
+                id="btn-open-export-formats"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-medium text-slate-700 transition-colors"
+              >
+                <span>Export Options</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={handleCopy}
+              id="btn-copy-minutes-summary"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-medium text-slate-700 transition-colors"
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
+              <span>{copied ? 'Copied' : 'Copy Text'}</span>
+            </button>
+          </div>
         </div>
 
         {/* Executive Summary */}
@@ -94,7 +142,7 @@ ${minutes.nextSteps.map(s => `- ${s}`).join('\n')}
                 type="button"
                 onClick={() => setIsEditingSummary(true)}
                 id="btn-edit-summary"
-                className="text-xs text-slate-500 hover:text-indigo-600 flex items-center gap-1"
+                className="text-xs text-slate-500 hover:text-indigo-600 flex items-center gap-1 transition-colors"
               >
                 <Edit2 className="w-3 h-3" /> Edit
               </button>
@@ -103,7 +151,7 @@ ${minutes.nextSteps.map(s => `- ${s}`).join('\n')}
                 <button
                   type="button"
                   onClick={handleSaveSummary}
-                  className="text-xs font-medium text-indigo-600 hover:text-indigo-700"
+                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
                 >
                   Save
                 </button>
